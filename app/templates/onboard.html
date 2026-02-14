@@ -497,15 +497,19 @@
                     <p style="font-size: 0.9rem; margin-bottom: 20px;">Support for Syslog, Apache, Nginx, and JSON
                         formats.</p>
 
-                    <div class="upload-area" id="drop-zone">
-                        <div class="upload-text">
-                            <span style="font-size: 1.5rem; display: block; margin-bottom: 5px;">drag & drop</span>
-                            or click to browse .csv / .log
-                        </div>
-                    </div>
+                    <form action="/upload" method="post" enctype="multipart/form-data" id="upload-form">
+                        <input type="file" name="file" accept=".csv" required hidden id="file-input">
 
-                    <button class="btn btn-primary" onclick="alert('Starting analysis pipeline...')">Run
-                        Detection</button>
+                        <div class="upload-area" id="drop-zone">
+                            <div class="upload-text" id="upload-text">
+                                <span style="font-size: 1.5rem; display: block; margin-bottom: 5px;">drag & drop</span>
+                                or click to browse .csv / .log
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="submit-btn">Run
+                            Detection</button>
+                    </form>
                 </div>
 
                 <!-- Cloud Card -->
@@ -602,8 +606,30 @@
 
         document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-        // Interaction Mockup
+        // File Upload Logic
         const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const uploadText = document.getElementById('upload-text');
+        const uploadForm = document.getElementById('upload-form');
+        const submitBtn = document.getElementById('submit-btn');
+
+        // Click to browse
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        // File Selection Change
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                updateFileName(fileInput.files[0].name);
+            }
+        });
+
+        function updateFileName(name) {
+            uploadText.innerHTML = `<span style="color: #64ffda;">File selected: ${name}</span>`;
+            dropZone.style.borderColor = '#64ffda';
+            dropZone.style.background = 'rgba(100, 255, 218, 0.05)';
+        }
+
+        // Drag & Drop Events
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropZone.style.background = 'rgba(100, 255, 218, 0.1)';
@@ -619,11 +645,20 @@
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             dropZone.style.background = 'rgba(100, 255, 218, 0.05)';
-            document.querySelector('.upload-text').innerHTML = '<span style="color: #64ffda;">File selected: access_logs.csv</span>';
+
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                updateFileName(e.dataTransfer.files[0].name);
+            }
         });
 
-        dropZone.addEventListener('click', () => {
-            document.querySelector('.upload-text').innerHTML = '<span style="color: #64ffda;">File selected: auth_logs_2026.csv</span>';
+        // Form Submit
+        uploadForm.addEventListener('submit', (e) => {
+            // Disable button and change text on submit
+            // The form will submit normally to /upload
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Analyzing...';
+            submitBtn.classList.add('btn-disabled');
         });
     </script>
 </body>
