@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | AI SOC Analyst</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050a14;
+            --card-bg: #0a192f;
+            --text-primary: #e6f1ff;
+            --text-secondary: #8892b0;
+            --accent-cyan: #64ffda;
+            --accent-purple: #bd00ff;
+            --accent-blue: #0070f3;
+            --glass-bg: rgba(10, 25, 47, 0.7);
+            --gradient-main: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            --border-glow: rgba(100, 255, 218, 0.3);
+            --font-main: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Typography --- */
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        h1 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .mono {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+        }
+
+        /* --- Layout --- */
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        section {
+            padding: 60px 0;
+            position: relative;
+        }
+
+        /* --- Animations --- */
+        @keyframes drift {
+            0% {
+                transform: translateY(0px) rotate(0deg);
+                opacity: 0.2;
+            }
+
+            50% {
+                transform: translateY(-20px) rotate(2deg);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: translateY(0px) rotate(0deg);
+                opacity: 0.2;
+            }
+        }
+
+        .bg-glow {
+            position: absolute;
+            width: 800px;
+            height: 800px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(189, 0, 255, 0.08) 0%, rgba(10, 25, 47, 0) 70%);
+            top: -200px;
+            right: -200px;
+            z-index: -1;
+            filter: blur(80px);
+            animation: drift 15s infinite ease-in-out;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- Header --- */
+        header {
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(5, 10, 20, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span {
+            color: var(--accent-cyan);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--accent-cyan);
+        }
+
+        /* --- Welcome Hero --- */
+        .welcome-hero {
+            text-align: center;
+            padding: 80px 0 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .welcome-hero p {
+            font-size: 1.1rem;
+        }
+
+        /* --- Connection Cards --- */
+        .source-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            min-height: 320px;
+        }
+
+        .card.active {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 30px rgba(100, 255, 218, 0.05);
+        }
+
+        .card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: rgba(10, 25, 47, 0.4);
+        }
+
+        .card:hover:not(.disabled) {
+            transform: translateY(-5px);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 10px 40px -10px rgba(2, 12, 27, 0.8);
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: var(--accent-cyan);
+        }
+
+        .card.disabled .card-icon {
+            color: var(--text-secondary);
+        }
+
+        .card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 15px;
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(100, 255, 218, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            width: 100%;
+            margin-bottom: 20px;
+            background: rgba(100, 255, 218, 0.02);
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            background: rgba(100, 255, 218, 0.05);
+            border-color: var(--accent-cyan);
+        }
+
+        .upload-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            font-family: var(--font-main);
+            width: 100%;
+            margin-top: auto;
+        }
+
+        .btn-primary {
+            background: var(--accent-cyan);
+            color: #0a192f;
+        }
+
+        .btn-primary:hover {
+            background: #4cdbb6;
+            box-shadow: 0 0 15px rgba(100, 255, 218, 0.4);
+        }
+
+        .btn-disabled {
+            background: transparent;
+            border: 1px solid var(--text-secondary);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+        }
+
+        .coming-soon {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 0.7rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: var(--text-secondary);
+            font-family: var(--font-mono);
+        }
+
+        /* --- Pipeline Visual --- */
+        .pipeline-container {
+            margin-top: 80px;
+            background: rgba(17, 34, 64, 0.3);
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .pipeline-title {
+            text-align: center;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        .pipeline-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .pipeline-steps::before {
+            content: '';
+            position: absolute;
+            top: 24px;
+            left: 50px;
+            right: 50px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 0;
+        }
+
+        .step-node {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            background: var(--bg-color);
+            padding: 0 10px;
+        }
+
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            background: var(--card-bg);
+            border: 2px solid var(--text-secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            color: var(--text-secondary);
+            font-weight: 700;
+            transition: 0.3s;
+        }
+
+        .step-node.active .step-circle {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            box-shadow: 0 0 15px rgba(100, 255, 218, 0.2);
+        }
+
+        .step-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* --- Empty State --- */
+        .empty-state {
+            text-align: center;
+            padding: 60px 0;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        /* --- Footer --- */
+        footer {
+            margin-top: auto;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px 0;
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .cloud-icons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 15px;
+            opacity: 0.6;
+            font-size: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .pipeline-steps {
+                flex-direction: column;
+                gap: 30px;
+            }
+
+            .pipeline-steps::before {
+                width: 2px;
+                height: 100%;
+                left: 50%;
+                top: 0;
+            }
+
+            .step-node {
+                padding: 10px 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">
+                    <span>◆</span> AI SOC Analyst
+                </div>
+                <div class="nav-links">
+                    <a href="#" class="active">Dashboard</a>
+                    <a href="#">Alerts</a>
+                    <a href="#">Settings</a>
+                    <a href="#" style="color: #ff6b6b;">Logout</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="bg-glow"></div>
+
+    <section class="welcome-hero reveal active">
+        <div class="container">
+            <h1>Welcome to Your Security Dashboard</h1>
+            <p>Connect a data source to activate the behavioral anomaly engine.</p>
+        </div>
+    </section>
+
+    <section id="connect">
+        <div class="container reveal">
+            <div class="source-grid">
+                <!-- Upload Card -->
+                <div class="card active">
+                    <div class="card-icon">📂</div>
+                    <h3>Upload Log File</h3>
+                    <p style="font-size: 0.9rem; margin-bottom: 20px;">Support for Syslog, Apache, Nginx, and JSON
+                        formats.</p>
+
+                    <div class="upload-area" id="drop-zone">
+                        <div class="upload-text">
+                            <span style="font-size: 1.5rem; display: block; margin-bottom: 5px;">drag & drop</span>
+                            or click to browse .csv / .log
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="alert('Starting analysis pipeline...')">Run
+                        Detection</button>
+                </div>
+
+                <!-- Cloud Card -->
+                <div class="card disabled">
+                    <div class="coming-soon">COMING SOON</div>
+                    <div class="card-icon">☁️</div>
+                    <h3>Cloud Storage</h3>
+                    <p style="font-size: 0.9rem;">Direct integration with cloud buckets for continuous ingestion.</p>
+                    <div class="cloud-icons">
+                        <span title="AWS S3">🟠</span>
+                        <span title="Azure Blob">🔵</span>
+                        <span title="GCP Storage">🟢</span>
+                    </div>
+                    <button class="btn btn-disabled">Connect Provider</button>
+                </div>
+
+                <!-- API Card -->
+                <div class="card disabled">
+                    <div class="coming-soon">COMING SOON</div>
+                    <div class="card-icon">🔌</div>
+                    <h3>API Integration</h3>
+                    <p style="font-size: 0.9rem;">Stream logs directly via our REST API endpoint using a secure token.
+                    </p>
+                    <div
+                        style="font-family: var(--font-mono); background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; font-size: 0.8rem; margin-bottom: 20px; color: var(--text-secondary);">
+                        api.aisoc.io/v1/ingest
+                    </div>
+                    <button class="btn btn-disabled">Generate Key</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container reveal">
+            <div class="pipeline-container">
+                <div class="pipeline-title">Analysis Pipeline Preview</div>
+                <div class="pipeline-steps">
+                    <div class="step-node active">
+                        <div class="step-circle">1</div>
+                        <div class="step-label">Upload</div>
+                    </div>
+                    <div class="step-node">
+                        <div class="step-circle">2</div>
+                        <div class="step-label">Feature Eng</div>
+                    </div>
+                    <div class="step-node">
+                        <div class="step-circle">3</div>
+                        <div class="step-label">IsoForest</div>
+                    </div>
+                    <div class="step-node">
+                        <div class="step-circle">4</div>
+                        <div class="step-label">Risk Score</div>
+                    </div>
+                    <div class="step-node">
+                        <div class="step-circle">5</div>
+                        <div class="step-label">Alerts</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="empty-state">
+                <div class="empty-icon">📊</div>
+                <h3>No Data Analyzed Yet</h3>
+                <p>Upload logs above to populate this dashboard with insights.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            &copy; 2026 AI SOC Analyst | Enterprise Edition v1.0
+        </div>
+    </footer>
+
+    <script>
+        // Scroll Reveal Animation
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+        // Interaction Mockup
+        const dropZone = document.getElementById('drop-zone');
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.background = 'rgba(100, 255, 218, 0.1)';
+            dropZone.style.borderColor = '#64ffda';
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.style.background = 'rgba(100, 255, 218, 0.02)';
+            dropZone.style.borderColor = 'rgba(100, 255, 218, 0.3)';
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.background = 'rgba(100, 255, 218, 0.05)';
+            document.querySelector('.upload-text').innerHTML = '<span style="color: #64ffda;">File selected: access_logs.csv</span>';
+        });
+
+        dropZone.addEventListener('click', () => {
+            document.querySelector('.upload-text').innerHTML = '<span style="color: #64ffda;">File selected: auth_logs_2026.csv</span>';
+        });
+    </script>
+</body>
+
+</html>
