@@ -554,12 +554,10 @@
                             <span class="chart-title">Risk Score Distribution</span>
                         </div>
                         <div class="bar-chart">
-                            <!-- CSS Mock bars -->
-                            <div class="bar" style="height: 20%;" title="Low Risk"></div>
-                            <div class="bar" style="height: 45%;" title="Low-Med Risk"></div>
-                            <div class="bar" style="height: 15%;" title="Medium Risk"></div>
-                            <div class="bar" style="height: 10%;" title="Med-High Risk"></div>
-                            <div class="bar" style="height: 5%;" data-risk="high" title="High Risk"></div>
+                            {% for pct in metrics.risk_distribution %}
+                            <div class="bar" style="height: {{ pct }}%;" title="Bin {{ loop.index }}: {{ pct|round }}%">
+                            </div>
+                            {% endfor %}
                         </div>
                         <div
                             style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.7rem; color: var(--text-secondary); font-family: var(--font-mono);">
@@ -575,17 +573,11 @@
                             <span class="chart-title">Requests vs Failures</span>
                         </div>
                         <div class="scatter-plot">
-                            <!-- Normal points -->
-                            <div class="dot" style="bottom: 10%; left: 10%;"></div>
-                            <div class="dot" style="bottom: 12%; left: 15%;"></div>
-                            <div class="dot" style="bottom: 15%; left: 8%;"></div>
-                            <div class="dot" style="bottom: 20%; left: 30%;"></div>
-                            <div class="dot" style="bottom: 22%; left: 28%;"></div>
-                            <!-- Anomaly points -->
-                            <div class="dot anomaly" style="bottom: 80%; left: 90%;"
-                                title="Anomaly: High Volume/Failures"></div>
-                            <div class="dot anomaly" style="bottom: 60%; left: 85%;" title="Anomaly"></div>
-                            <div class="dot anomaly" style="bottom: 10%; left: 95%;" title="Anomaly: Low & Slow"></div>
+                            {% for dot in scatter_data %}
+                            <div class="dot {% if dot.is_anomaly %}anomaly{% endif %}"
+                                style="bottom: {{ dot.y }}%; left: {{ dot.x }}%;"
+                                title="IP: {{ dot.ip }} {% if dot.is_anomaly %}(Anomaly){% endif %}"></div>
+                            {% endfor %}
                         </div>
                         <div
                             style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.7rem; color: var(--text-secondary); font-family: var(--font-mono);">
@@ -661,26 +653,42 @@
                 <div class="sidebar">
                     <div class="insight-panel">
                         <h4 class="insight-title"><span>💡</span> Model Insight</h4>
+                        {% if insights.top_threat %}
                         <p class="insight-text">
-                            The <strong>Isolation Forest</strong> algorithm identified 192.168.1.105 as a statistical
-                            outlier due to an unusually short path length in the decision tree.
+                            The <strong>{{ insights.algorithm }}</strong> algorithm identified <strong>{{
+                                insights.top_threat.ip }}</strong> as a significant
+                            {% if insights.top_threat.anomaly %}outlier{% else %}risk target{% endif %} with a risk
+                            score of {{ insights.top_threat.risk_score }}.
                         </p>
                         <div class="insight-stat">
-                            <span>Isolation Depth</span>
-                            <span class="mono">4.2 (Avg: 12.8)</span>
+                            <span>Analysis Method</span>
+                            <span class="mono">{{ insights.algorithm }}</span>
+                        </div>
+                        <div class="insight-stat">
+                            <span>Highest Risk</span>
+                            <span class="mono">{{ insights.top_threat.risk_score }}</span>
                         </div>
                         <div class="insight-stat">
                             <span>Window Size</span>
-                            <span class="mono">5 Minutes</span>
+                            <span class="mono">{{ insights.window_size }}</span>
                         </div>
                         <div class="insight-stat">
-                            <span>Contamination</span>
-                            <span class="mono">0.02%</span>
+                            <span>Status</span>
+                            <span class="mono">{% if insights.top_threat.anomaly %}Anomaly Detected{% else %}Normal
+                                Traffic{% endif %}</span>
                         </div>
+                        {% else %}
+                        <p class="insight-text">No significant threats detected in the current dataset.</p>
+                        {% endif %}
                         <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
                             <small style="color: var(--text-secondary);">Recommendation:</small>
-                            <p style="color: var(--accent-cyan); font-size: 0.9rem;">Immediate firewall block suggested
-                                for high-risk IPs.</p>
+                            <p style="color: var(--accent-cyan); font-size: 0.9rem;">
+                                {% if insights.top_threat and insights.top_threat.anomaly %}
+                                Immediate firewall block suggested for high-risk IPs.
+                                {% else %}
+                                Continue monitoring for behavioral shifts.
+                                {% endif %}
+                            </p>
                         </div>
                     </div>
                 </div>
