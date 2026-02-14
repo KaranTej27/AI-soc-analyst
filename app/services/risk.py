@@ -17,8 +17,8 @@ def assign_risk_levels(df: pd.DataFrame) -> pd.DataFrame:
     # -------------------------------------------------------------------------
     if "risk_score" not in df.columns:
         raise ValueError(
-            f"Input missing required column 'risk_score'. "
-            f"Found columns: {list(df.columns)}"
+            f"Risk assignment failed: Column 'risk_score' not found in data. "
+            f"Current columns: {list(df.columns)}"
         )
 
     # -------------------------------------------------------------------------

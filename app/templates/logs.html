@@ -456,6 +456,23 @@
             color: var(--text-secondary);
         }
 
+        /* --- Utility Classes --- */
+        .text-danger {
+            color: var(--danger) !important;
+        }
+
+        .text-warning {
+            color: var(--warning) !important;
+        }
+
+        .text-secondary {
+            color: var(--text-secondary) !important;
+        }
+
+        .fw-bold {
+            font-weight: 700;
+        }
+
         @media (max-width: 1024px) {
             .dash-layout {
                 grid-template-columns: 1fr;
@@ -507,19 +524,19 @@
         <!-- Metrics -->
         <div class="metrics-grid">
             <div class="metric-card">
-                <span class="metric-value">1,248</span>
+                <span class="metric-value">{{ metrics.total_ips }}</span>
                 <span class="metric-label">Total IPs Analyzed</span>
             </div>
             <div class="metric-card">
-                <span class="metric-value">458.2k</span>
-                <span class="metric-label">Requests Processed</span>
+                <span class="metric-value">{{ metrics.avg_risk_score }}</span>
+                <span class="metric-label">Avg Risk Score</span>
             </div>
             <div class="metric-card warning">
-                <span class="metric-value" style="color: var(--warning);">38</span>
+                <span class="metric-value" style="color: var(--warning);">{{ metrics.total_anomalies }}</span>
                 <span class="metric-label">Anomalies Detected</span>
             </div>
             <div class="metric-card danger">
-                <span class="metric-value" style="color: var(--danger);">5</span>
+                <span class="metric-value" style="color: var(--danger);">{{ metrics.high_risk_count }}</span>
                 <span class="metric-label">High Risk Targets</span>
             </div>
         </div>
@@ -599,30 +616,24 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr onclick="toggleLogs('192.168.1.105')">
-                                <td>192.168.1.105</td>
-                                <td style="color: var(--danger); font-weight: 700;">-0.89</td>
-                                <td>14,203</td>
-                                <td>892</td>
-                                <td>/admin, /api/v1</td>
-                                <td><span class="risk-badge risk-high">High</span></td>
+                            {% for row in records %}
+                            <tr onclick="toggleLogs('{{ row.ip }}')">
+                                <td>{{ row.ip }}</td>
+                                <td
+                                    class="fw-bold {% if row.risk_level == 'HIGH' %}text-danger{% elif row.risk_level == 'MEDIUM' %}text-warning{% else %}text-secondary{% endif %}">
+                                    {{ row.risk_score }}
+                                </td>
+                                <td>{{ row.total_requests }}</td>
+                                <td>{{ row.failed_requests }}</td>
+                                <td>{{ row.unique_endpoints }}</td>
+                                <td>
+                                    <span
+                                        class="risk-badge {% if row.risk_level == 'HIGH' %}risk-high{% elif row.risk_level == 'MEDIUM' %}risk-med{% else %}risk-low{% endif %}">
+                                        {{ row.risk_level }}
+                                    </span>
+                                </td>
                             </tr>
-                            <tr onclick="toggleLogs('10.0.0.42')">
-                                <td>10.0.0.42</td>
-                                <td style="color: var(--warning); font-weight: 700;">-0.65</td>
-                                <td>2,401</td>
-                                <td>120</td>
-                                <td>/login, /auth</td>
-                                <td><span class="risk-badge risk-med">Medium</span></td>
-                            </tr>
-                            <tr onclick="toggleLogs('172.16.8.201')">
-                                <td>172.16.8.201</td>
-                                <td style="color: var(--text-secondary);">-0.51</td>
-                                <td>598</td>
-                                <td>0</td>
-                                <td>/database.dump</td>
-                                <td><span class="risk-badge risk-low">Low</span></td>
-                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>

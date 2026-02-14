@@ -509,7 +509,7 @@
                     <h1>Create account</h1>
                     <p class="subtitle">Join AI SOC Analyst to get started.</p>
 
-                    <form id="signup-form" action="/signup" method="post" novalidate>
+                    <form id="signup-form" action="/dashboard" method="GET" novalidate>
                         <a href="/auth/google" class="btn-google" aria-label="Sign up with Google"
                             style="margin-bottom: 0.5rem;">
                             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -595,96 +595,9 @@
     <script>
         (function () {
             var form = document.getElementById('signup-form');
-            var passwordInput = document.getElementById('password');
-            var confirmInput = document.getElementById('confirm-password');
-            var strengthEl = document.getElementById('password-strength');
-            var strengthText = document.getElementById('password-strength-text');
-            var criteriaIds = ['crit-length', 'crit-upper', 'crit-lower', 'crit-number', 'crit-special'];
-
-            function checkCriteria(password) {
-                return {
-                    length: password.length >= 8,
-                    upper: /[A-Z]/.test(password),
-                    lower: /[a-z]/.test(password),
-                    number: /\d/.test(password),
-                    special: /[^a-zA-Z0-9]/.test(password)
-                };
-            }
-
-            function getPasswordStrength(password) {
-                if (!password.length) return { level: 'none', label: 'Enter a password', criteria: null };
-                var c = checkCriteria(password);
-                var metCount = [c.length, c.upper, c.lower, c.number, c.special].filter(Boolean).length;
-                if (metCount === 5) return { level: 'strong', label: 'Strong', criteria: c };
-                if (metCount >= 3) return { level: 'fair', label: 'Fair', criteria: c };
-                return { level: 'weak', label: 'Weak', criteria: c };
-            }
-
-            function updateCriteriaDisplay(criteria) {
-                if (!criteria) {
-                    criteriaIds.forEach(function (id) {
-                        document.getElementById(id).classList.remove('met');
-                    });
-                    return;
-                }
-                var order = ['length', 'upper', 'lower', 'number', 'special'];
-                order.forEach(function (key, i) {
-                    var el = document.getElementById(criteriaIds[i]);
-                    if (el) el.classList.toggle('met', criteria[key]);
-                });
-            }
-
-            passwordInput.addEventListener('input', function () {
-                var s = getPasswordStrength(this.value);
-                strengthEl.className = 'password-strength ' + (s.level === 'none' ? '' : s.level);
-                strengthText.textContent = s.label;
-                updateCriteriaDisplay(s.criteria);
-            });
-
-            function showError(id, msg) {
-                var el = document.getElementById(id);
-                var input = id.replace('-error', '');
-                var field = document.getElementById(input);
-                if (field) field.classList.toggle('error', !!msg);
-                el.textContent = msg || '';
-            }
-
+            // Simplified for dummy authentication
             form.addEventListener('submit', function (e) {
-                e.preventDefault();
-                showError('username-error', '');
-                showError('email-error', '');
-                showError('password-error', '');
-                showError('confirm-error', '');
-
-                var username = document.getElementById('username').value.trim();
-                var email = document.getElementById('email').value.trim();
-                var password = passwordInput.value;
-                var confirm = confirmInput.value;
-                var valid = true;
-
-                if (!username) {
-                    showError('username-error', 'Please enter a username.');
-                    valid = false;
-                }
-                if (!email) {
-                    showError('email-error', 'Please enter your email.');
-                    valid = false;
-                }
-                var criteria = checkCriteria(password);
-                var allMet = criteria.length && criteria.upper && criteria.lower && criteria.number && criteria.special;
-                if (!allMet) {
-                    showError('password-error', 'Password must meet all criteria above (8+ chars, upper, lower, number, special character).');
-                    valid = false;
-                }
-                if (password !== confirm) {
-                    showError('confirm-error', 'Passwords do not match.');
-                    valid = false;
-                }
-
-                if (valid) {
-                    // Form is valid – in a real app you would submit to your backend here
-                    form.submit();
-                }
+                // No validation, direct submission to /dashboard (form action)
             });
         })();
     </script>

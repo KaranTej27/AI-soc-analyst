@@ -67,15 +67,10 @@ async def upload_csv(
         # ---------------------------------------------------------------------
         return RedirectResponse(url="/logs", status_code=303)
 
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=f"Validation error: {str(e)}")
-    except HTTPException:
-        raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Processing failed: {str(e)}",
-        )
+        import traceback
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
         # Clean up temporary file
         if file_path and os.path.exists(file_path):

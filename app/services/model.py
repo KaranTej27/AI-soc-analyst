@@ -28,11 +28,14 @@ def run_isolation_forest(df: pd.DataFrame) -> pd.DataFrame:
     # -------------------------------------------------------------------------
     # STEP 1 — Validate Input
     # -------------------------------------------------------------------------
+    if df.empty:
+        raise ValueError("Anomaly detection failed: Input dataset is empty.")
+
     actual_cols = set(df.columns)
     missing = set(REQUIRED_FEATURES) - actual_cols
     if missing:
         raise ValueError(
-            f"Input missing required feature columns: {missing}. "
+            f"Anomaly detection failed: Missing required feature columns: {missing}. "
             f"Found columns: {list(df.columns)}"
         )
 
@@ -47,55 +50,67 @@ def run_isolation_forest(df: pd.DataFrame) -> pd.DataFrame:
     valid_indices = result.index[valid_mask]
 
     if valid_indices.empty:
-        result["anomaly_label"] = np.nan
-        result["anomaly_score"] = np.nan
-        result["risk_score"] = np.nan
-        return result
+        raise ValueError("Anomaly detection failed: No valid numerical data available after filtering missing values.")
 
     X_clean = X.loc[valid_indices].astype(float)
     X_clean = X_clean.dropna()
 
     if X_clean.empty:
-        result["anomaly_label"] = np.nan
-        result["anomaly_score"] = np.nan
-        result["risk_score"] = np.nan
-        return result
+        raise ValueError("Anomaly detection failed: Feature matrix became empty after cleaning.")
 
-    # Recompute valid_indices after dropna (in case dropna removed more)
+    # Recompute valid_indices after dropna
     valid_indices = X_clean.index
 
     # -------------------------------------------------------------------------
     # STEP 3 — Scale Features
     # -------------------------------------------------------------------------
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X_clean)
+    try:
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X_clean)
+    except Exception as e:
+        raise ValueError(f"Normalization failed: {str(e)}")
 
     # -------------------------------------------------------------------------
     # STEP 4 — Train Isolation Forest
     # -------------------------------------------------------------------------
-    model = IsolationForest(
-        contamination=0.05,
-        random_state=42,
-        n_estimators=100,
-    )
-    model.fit(X_scaled)
+    try:
+        # Minimum rows needed to build a reasonable model
+        if len(X_scaled) < 2:
+            # For 1 row, we can't really do anomaly detection effectively with contamination
+            # Just mark it as normal
+            result["anomaly_label"] = np.nan
+            result["anomaly_score"] = np.nan
+            result["risk_score"] = np.nan
+            result.loc[valid_indices, "anomaly_label"] = 1
+            result.loc[valid_indices, "anomaly_score"] = 0.0
+            result.loc[valid_indices, "risk_score"] = 50.0
+            return result
+
+        model = IsolationForest(
+            contamination=0.05,
+            random_state=42,
+            n_estimators=100,
+        )
+        model.fit(X_scaled)
+    except Exception as e:
+        raise ValueError(f"Model training failed: {str(e)}")
 
     # -------------------------------------------------------------------------
     # STEP 5 — Compute Outputs
     # -------------------------------------------------------------------------
-    # 1 = normal, -1 = anomaly
-    anomaly_label = model.predict(X_scaled)
-    anomaly_score = model.decision_function(X_scaled)
+    try:
+        # 1 = normal, -1 = anomaly
+        anomaly_label = model.predict(X_scaled)
+        anomaly_score = model.decision_function(X_scaled)
+    except Exception as e:
+        raise ValueError(f"Prediction failed: {str(e)}")
 
     # -------------------------------------------------------------------------
     # STEP 6 — Normalize Anomaly Score to 0–100 Risk Scale
     # -------------------------------------------------------------------------
-    # Isolation Forest: decision_function returns lower values for anomalies.
-    # Invert so higher risk_score = more anomalous.
     raw_min = anomaly_score.min()
     raw_max = anomaly_score.max()
     if raw_max > raw_min:
-        # Min-max to [0, 100], inverted: anomalies (low raw) -> high risk
         risk_score = 100.0 * (raw_max - anomaly_score) / (raw_max - raw_min)
     else:
         risk_score = np.full_like(anomaly_score, 50.0)
