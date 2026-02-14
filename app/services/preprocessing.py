@@ -13,24 +13,50 @@ def build_features(file_path: str) -> pd.DataFrame:
     and engineer behavioral features for anomaly detection.
     """
     # -------------------------------------------------------------------------
-    # STEP 1 — Load CSV
+    # STEP 1 — Load CSV & Normalize Schema
     # -------------------------------------------------------------------------
     df = pd.read_csv(file_path)
 
+    # Normalize headers: strip whitespace, lowercase
+    df.columns = df.columns.astype(str).str.strip().str.lower()
+
+    # Intelligent Mapping: Standardize common variants
+    column_mapping = {
+        "ip_address": "ip",
+        "time": "timestamp",
+        "datetime": "timestamp",
+        "url": "endpoint",
+        "path": "endpoint",
+        "request": "endpoint",
+        "staus": "status",  # Handle typos
+    }
+    df = df.rename(columns=column_mapping)
+
     # -------------------------------------------------------------------------
-    # STEP 2 — Validate Required Columns
+    # STEP 2 — Validate & Clean Data
     # -------------------------------------------------------------------------
     required = {"ip", "timestamp", "status", "endpoint"}
-    actual_cols = set(df.columns)
-    missing = required - actual_cols
+    missing = required - set(df.columns)
     if missing:
         raise ValueError(
-            f"Dataset missing required columns: {missing}. "
+            f"Dataset missing required columns after normalization: {missing}. "
             f"Found columns: {list(df.columns)}"
         )
 
-    # Parse timestamp as datetime and sort by it
+    # Safe Type Handling
+    # 1. Parse timestamps (coerce errors to NaT)
     df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
+
+    # 2. Parse status codes (coerce non-numeric to NaN)
+    df["status"] = pd.to_numeric(df["status"], errors="coerce")
+
+    # 3. Drop rows with invalid timestamp or status (essential for analysis)
+    df = df.dropna(subset=["timestamp", "status"])
+
+    # 4. Ensure correct types for downstream use
+    df["status"] = df["status"].astype(int)
+    
+    # Sort by timestamp for windowing
     df = df.sort_values(by="timestamp").reset_index(drop=True)
 
     # -------------------------------------------------------------------------
