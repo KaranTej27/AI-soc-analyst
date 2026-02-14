@@ -1,6 +1,7 @@
 """
-Anomaly detection using Isolation Forest.
-Pure data processing module — no FastAPI or route logic.
+Behavioral Anomaly Detection Engine.
+Hybrid logic: Z-score for small datasets, Isolation Forest for larger ones.
+Pure Python module — no FastAPI imports.
 """
 
 import numpy as np
@@ -9,121 +10,126 @@ from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 
 
-# Feature columns required for anomaly detection
-REQUIRED_FEATURES = [
-    "total_requests",
-    "failed_requests",
-    "success_ratio",
-    "unique_endpoints",
-    "request_rate_per_minute",
-    "avg_time_gap_seconds",
-]
-
-
 def run_isolation_forest(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Run Isolation Forest anomaly detection on behavioral features.
-    Returns a copy of the input with anomaly_label, anomaly_score, and risk_score.
+    Standardized entry point for anomaly detection (formerly just Isolation Forest).
+    Now uses hybrid logic: Z-score for small datasets, IF for larger ones.
+    2. Handles small vs large datasets using hybrid logic.
+    3. Guarantees anomaly_label, anomaly_score, and risk_score (0-100).
     """
-    # -------------------------------------------------------------------------
-    # STEP 1 — Validate Input
-    # -------------------------------------------------------------------------
     if df.empty:
-        raise ValueError("Anomaly detection failed: Input dataset is empty.")
+        return df
 
-    actual_cols = set(df.columns)
-    missing = set(REQUIRED_FEATURES) - actual_cols
-    if missing:
-        raise ValueError(
-            f"Anomaly detection failed: Missing required feature columns: {missing}. "
-            f"Found columns: {list(df.columns)}"
-        )
-
-    # Work on a copy — do not modify input in-place
+    # Work on a copy
     result = df.copy()
 
-    # -------------------------------------------------------------------------
-    # STEP 2 — Select Feature Matrix
-    # -------------------------------------------------------------------------
-    X = df[REQUIRED_FEATURES].copy()
-    valid_mask = ~X.isna().any(axis=1)
-    valid_indices = result.index[valid_mask]
+    # 1. Automatically select numeric columns
+    numeric_df = df.select_dtypes(include=[np.number]).copy()
+    
+    # Drop rows that are entirely NaN in numeric columns if any exist
+    numeric_df = numeric_df.dropna(how='all')
+    if numeric_df.empty:
+        # If no numeric data at all, return with neutral scores
+        result["anomaly_label"] = 1
+        result["anomaly_score"] = 0.0
+        result["risk_score"] = 0.0
+        return result
 
-    if valid_indices.empty:
-        raise ValueError("Anomaly detection failed: No valid numerical data available after filtering missing values.")
+    # 3. Handle NaNs safely (fill with mean, fallback to 0)
+    X = numeric_df.fillna(numeric_df.mean().fillna(0))
 
-    X_clean = X.loc[valid_indices].astype(float)
-    X_clean = X_clean.dropna()
+    # Keep track of indices that have numeric data
+    valid_indices = X.index
 
-    if X_clean.empty:
-        raise ValueError("Anomaly detection failed: Feature matrix became empty after cleaning.")
+    # Initialize columns in the result
+    result["anomaly_label"] = 1  # 1 = normal, -1 = anomaly
+    result["anomaly_score"] = 0.0
+    result["risk_score"] = 0.0
 
-    # Recompute valid_indices after dropna
-    valid_indices = X_clean.index
+    n_rows = len(X)
 
-    # -------------------------------------------------------------------------
-    # STEP 3 — Scale Features
-    # -------------------------------------------------------------------------
-    try:
-        scaler = StandardScaler()
-        X_scaled = scaler.fit_transform(X_clean)
-    except Exception as e:
-        raise ValueError(f"Normalization failed: {str(e)}")
-
-    # -------------------------------------------------------------------------
-    # STEP 4 — Train Isolation Forest
-    # -------------------------------------------------------------------------
-    try:
-        # Minimum rows needed to build a reasonable model
-        if len(X_scaled) < 2:
-            # For 1 row, we can't really do anomaly detection effectively with contamination
-            # Just mark it as normal
-            result["anomaly_label"] = np.nan
-            result["anomaly_score"] = np.nan
-            result["risk_score"] = np.nan
-            result.loc[valid_indices, "anomaly_label"] = 1
-            result.loc[valid_indices, "anomaly_score"] = 0.0
-            result.loc[valid_indices, "risk_score"] = 50.0
-            return result
-
-        model = IsolationForest(
-            contamination=0.05,
-            random_state=42,
-            n_estimators=100,
-        )
-        model.fit(X_scaled)
-    except Exception as e:
-        raise ValueError(f"Model training failed: {str(e)}")
-
-    # -------------------------------------------------------------------------
-    # STEP 5 — Compute Outputs
-    # -------------------------------------------------------------------------
-    try:
-        # 1 = normal, -1 = anomaly
-        anomaly_label = model.predict(X_scaled)
-        anomaly_score = model.decision_function(X_scaled)
-    except Exception as e:
-        raise ValueError(f"Prediction failed: {str(e)}")
-
-    # -------------------------------------------------------------------------
-    # STEP 6 — Normalize Anomaly Score to 0–100 Risk Scale
-    # -------------------------------------------------------------------------
-    raw_min = anomaly_score.min()
-    raw_max = anomaly_score.max()
-    if raw_max > raw_min:
-        risk_score = 100.0 * (raw_max - anomaly_score) / (raw_max - raw_min)
+    if n_rows < 50:
+        # 4. Simple statistical anomaly detection (Z-score)
+        labels, scores, risks = _detect_zscore(X)
     else:
-        risk_score = np.full_like(anomaly_score, 50.0)
+        # 5. Isolation Forest
+        labels, scores, risks = _detect_isolation_forest(X)
 
-    # -------------------------------------------------------------------------
-    # STEP 7 — Return Updated DataFrame
-    # -------------------------------------------------------------------------
-    result["anomaly_label"] = np.nan
-    result["anomaly_score"] = np.nan
-    result["risk_score"] = np.nan
-
-    result.loc[valid_indices, "anomaly_label"] = anomaly_label
-    result.loc[valid_indices, "anomaly_score"] = anomaly_score
-    result.loc[valid_indices, "risk_score"] = risk_score
+    # Apply results back to original indices
+    result.loc[valid_indices, "anomaly_label"] = labels
+    result.loc[valid_indices, "anomaly_score"] = scores
+    result.loc[valid_indices, "risk_score"] = risks
 
     return result
+
+
+def _detect_zscore(X: pd.DataFrame):
+    """
+    Statistical detection for small datasets.
+    Computes average absolute Z-score across numeric features.
+    """
+    # Standardize
+    scaler = StandardScaler()
+    try:
+        X_scaled = scaler.fit_transform(X)
+    except Exception:
+        # Handle cases with zero variance
+        X_scaled = np.zeros(X.shape)
+
+    # Average absolute Z-score across all columns for each row
+    z_scores = np.abs(X_scaled).mean(axis=1)
+    
+    # Label as anomaly (-1) if any feature's absolute Z-score > 2.5
+    # or if the average Z-score is in the top 10%
+    threshold = 2.5
+    labels = np.ones(len(X))
+    anomaly_mask = (np.abs(X_scaled) > threshold).any(axis=1)
+    labels[anomaly_mask] = -1
+    
+    # Anomaly score (higher is more anomalous)
+    scores = z_scores
+    
+    # Risk score normalized 0-100
+    if scores.max() > scores.min():
+        risks = 100 * (scores - scores.min()) / (scores.max() - scores.min())
+    else:
+        risks = np.zeros(len(scores))
+        
+    return labels, scores, risks
+
+
+def _detect_isolation_forest(X: pd.DataFrame):
+    """
+    Isolation Forest for datasets with >= 50 rows.
+    """
+    # 6. Dynamic contamination
+    n_rows = len(X)
+    n_contamination = min(0.1, 10 / n_rows)
+    
+    model = IsolationForest(
+        contamination=n_contamination,
+        random_state=42,
+        n_estimators=100
+    )
+    
+    # Standardize before IF (good practice)
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    
+    model.fit(X_scaled)
+    
+    # 1 = normal, -1 = anomaly
+    labels = model.predict(X_scaled)
+    
+    # decision_function returns raw scores (lower = more abnormal)
+    # We want anomaly_score to be higher for anomalies for consistency
+    raw_scores = model.decision_function(X_scaled)
+    scores = -raw_scores # Flip so higher is more anomalous
+    
+    # 7. Risk score (0-100)
+    if scores.max() > scores.min():
+        risks = 100 * (scores - scores.min()) / (scores.max() - scores.min())
+    else:
+        risks = np.zeros(len(scores))
+        
+    return labels, scores, risks

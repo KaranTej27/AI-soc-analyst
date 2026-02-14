@@ -5,6 +5,7 @@ Pure data processing module — no FastAPI or route logic.
 
 import pandas as pd
 import numpy as np
+from app.services.schema_adapter import detect_and_standardize_schema
 
 
 def build_features(file_path: str) -> pd.DataFrame:
@@ -23,31 +24,18 @@ def build_features(file_path: str) -> pd.DataFrame:
     if df.empty:
         raise ValueError("The uploaded CSV file is empty.")
 
-    # Normalize headers: strip whitespace, lowercase
-    df.columns = df.columns.astype(str).str.strip().str.lower()
-
-    # Intelligent Mapping: Standardize common variants
-    column_mapping = {
-        "ip_address": "ip",
-        "ip address": "ip",
-        "time": "timestamp",
-        "datetime": "timestamp",
-        "url": "endpoint",
-        "path": "endpoint",
-        "request": "endpoint",
-        "staus": "status",  # Handle typos
-    }
-    df = df.rename(columns=column_mapping)
+    # Standardize Schema: Normalize headers, variants, and defaults
+    df = detect_and_standardize_schema(df)
 
     # -------------------------------------------------------------------------
     # STEP 2 — Validate & Clean Data
     # -------------------------------------------------------------------------
-    required = {"ip", "timestamp", "status", "endpoint"}
+    required = {"ip", "timestamp"}  # Relaxed requirements
     missing = required - set(df.columns)
     if missing:
         raise ValueError(
             f"Dataset missing required columns: {missing}. "
-            f"Please ensure your CSV has: ip, timestamp, status, and endpoint."
+            f"Please ensure your CSV has at least: ip and timestamp."
         )
 
     # Safe Type Handling
