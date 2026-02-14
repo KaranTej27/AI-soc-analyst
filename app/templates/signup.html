@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign up | AI SOC Analyst</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050a14;
+            --card-bg: #0a192f;
+            --text-primary: #e6f1ff;
+            --text-secondary: #8892b0;
+            --accent-cyan: #64ffda;
+            --accent-purple: #bd00ff;
+            --glass-bg: rgba(10, 25, 47, 0.7);
+            --gradient-main: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            --font-main: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Auth page - full viewport */
+        .auth-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-bg {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .auth-bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.5;
+            animation: orbFloat 18s ease-in-out infinite;
+        }
+
+        .auth-bg-orb-1 {
+            width: 70vmin;
+            height: 70vmin;
+            background: radial-gradient(circle, rgba(100, 255, 218, 0.15) 0%, transparent 70%);
+            top: -20%;
+            left: -10%;
+            animation-delay: 0s;
+        }
+
+        .auth-bg-orb-2 {
+            width: 50vmin;
+            height: 50vmin;
+            background: radial-gradient(circle, rgba(189, 0, 255, 0.12) 0%, transparent 70%);
+            bottom: -15%;
+            right: -10%;
+            animation-delay: -6s;
+        }
+
+        .auth-bg-orb-3 {
+            width: 40vmin;
+            height: 40vmin;
+            background: radial-gradient(circle, rgba(0, 112, 243, 0.08) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: -12s;
+        }
+
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(3%, -4%) scale(1.05); }
+            66% { transform: translate(-2%, 3%) scale(0.98); }
+        }
+
+        .auth-brand {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-brand a {
+            font-family: var(--font-mono);
+            font-weight: 800;
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            color: var(--text-primary);
+            text-decoration: none;
+            letter-spacing: -0.03em;
+        }
+
+        .auth-brand a span {
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .auth-brand-tagline {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.35rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        /* Signup section */
+        .signup-section {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 440px;
+            animation: cardReveal 0.6s ease-out;
+        }
+
+        @keyframes cardReveal {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .signup-card {
+            position: relative;
+            background: linear-gradient(165deg, rgba(12, 28, 52, 0.96) 0%, rgba(8, 22, 42, 0.98) 40%, rgba(6, 16, 32, 0.99) 100%);
+            padding: 2.75rem 3rem;
+            border-radius: 20px;
+            border: 1px solid rgba(100, 255, 218, 0.18);
+            width: 100%;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06),
+                0 0 0 1px rgba(255, 255, 255, 0.04),
+                0 30px 60px -20px rgba(0, 0, 0, 0.6),
+                0 0 100px -30px rgba(100, 255, 218, 0.25);
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+        }
+
+        .signup-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-main);
+            opacity: 0.95;
+        }
+
+        .signup-card .card-inner {
+            padding-top: 0.15rem;
+        }
+
+        .signup-card h1 {
+            font-size: 1.85rem;
+            margin-bottom: 0.35rem;
+            letter-spacing: -0.02em;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .signup-card .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 1.75rem;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 1.35rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            font-size: 1rem;
+            font-family: var(--font-main);
+            color: var(--text-primary);
+            background: rgba(5, 10, 20, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            background: rgba(5, 10, 20, 0.7);
+            box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.12);
+        }
+
+        .form-group input.error {
+            border-color: #f87171;
+            box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.2);
+        }
+
+        .password-criteria {
+            margin-top: 0.6rem;
+            padding: 0.8rem 1rem;
+            background: rgba(5, 10, 20, 0.6);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .password-criteria-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .password-criteria ul {
+            list-style: none;
+        }
+
+        .password-criteria li {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            padding: 0.2rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .password-criteria li.met {
+            color: var(--accent-cyan);
+        }
+
+        .password-criteria li.met::before {
+            content: '✓';
+            color: #34d399;
+            font-weight: 700;
+        }
+
+        .password-criteria li::before {
+            content: '○';
+            color: var(--text-secondary);
+            opacity: 0.5;
+            font-size: 0.75rem;
+        }
+
+        .password-strength {
+            margin-top: 0.6rem;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .password-strength-bar {
+            height: 100%;
+            width: 0;
+            border-radius: 3px;
+            transition: width 0.35s ease, background 0.35s ease;
+        }
+
+        .password-strength.weak .password-strength-bar {
+            width: 25%;
+            background: #f87171;
+        }
+
+        .password-strength.fair .password-strength-bar {
+            width: 60%;
+            background: #fbbf24;
+        }
+
+        .password-strength.strong .password-strength-bar {
+            width: 100%;
+            background: #34d399;
+        }
+
+        .password-strength-text {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 0.4rem;
+            color: var(--text-secondary);
+        }
+
+        .password-strength.weak .password-strength-text { color: #f87171; }
+        .password-strength.fair .password-strength-text { color: #fbbf24; }
+        .password-strength.strong .password-strength-text { color: #34d399; }
+
+        .form-error {
+            font-size: 0.85rem;
+            color: #f87171;
+            margin-top: 0.35rem;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 0.95rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: var(--font-main);
+            color: var(--bg-color);
+            background: var(--gradient-main);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 0.75rem;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+
+        .btn-submit:hover {
+            box-shadow: 0 0 28px rgba(100, 255, 218, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.25rem 0;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .auth-divider span {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-google {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            width: 100%;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.95rem;
+            font-family: var(--font-main);
+            font-weight: 500;
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-google:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-google svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .login-prompt {
+            text-align: center;
+            margin-top: 1.75rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .login-prompt p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .login-prompt a {
+            display: inline-block;
+            padding: 0.6rem 1.5rem;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            text-decoration: none;
+            border: 1px solid var(--accent-cyan);
+            border-radius: 8px;
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+
+        .login-prompt a:hover {
+            background: rgba(100, 255, 218, 0.1);
+            box-shadow: 0 0 15px rgba(100, 255, 218, 0.2);
+        }
+
+        .auth-footer {
+            position: relative;
+            z-index: 1;
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .auth-footer-nav {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 0.35rem 0.75rem;
+        }
+
+        .auth-footer-nav a {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .auth-footer-nav a:hover {
+            color: var(--accent-cyan);
+        }
+
+        .auth-footer-nav .sep {
+            color: var(--text-secondary);
+            opacity: 0.5;
+            font-size: 0.7rem;
+            user-select: none;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="auth-page">
+        <div class="auth-bg">
+            <div class="auth-bg-orb auth-bg-orb-1"></div>
+            <div class="auth-bg-orb auth-bg-orb-2"></div>
+            <div class="auth-bg-orb auth-bg-orb-3"></div>
+        </div>
+
+        <div class="auth-brand">
+            <a href="/">AI SOC <span>Analyst</span></a>
+            <p class="auth-brand-tagline">Behavioral anomaly detection</p>
+        </div>
+
+        <section class="signup-section">
+        <div class="signup-card">
+            <div class="card-inner">
+            <h1>Create account</h1>
+            <p class="subtitle">Join AI SOC Analyst to get started.</p>
+
+            <form id="signup-form" action="#" method="post" novalidate>
+                <a href="/auth/google" class="btn-google" aria-label="Sign up with Google" style="margin-bottom: 0.5rem;">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Sign up with Google
+                </a>
+                <div class="auth-divider"><span>Or sign up with email</span></div>
+
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" placeholder="Choose a username" required
+                        autocomplete="username">
+                    <span class="form-error" id="username-error" aria-live="polite"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="you@example.com" required
+                        autocomplete="email">
+                    <span class="form-error" id="email-error" aria-live="polite"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Create a strong password" required
+                        autocomplete="new-password" minlength="8">
+                    <div class="password-strength" id="password-strength" aria-hidden="true">
+                        <div class="password-strength-bar"></div>
+                    </div>
+                    <div class="password-strength-text" id="password-strength-text">Enter a password</div>
+                    <div class="password-criteria">
+                        <div class="password-criteria-title">Password must have:</div>
+                        <ul>
+                            <li id="crit-length">At least 8 characters</li>
+                            <li id="crit-upper">One uppercase letter</li>
+                            <li id="crit-lower">One lowercase letter</li>
+                            <li id="crit-number">One number</li>
+                            <li id="crit-special">One special character (!@#$%^&* etc.)</li>
+                        </ul>
+                    </div>
+                    <span class="form-error" id="password-error" aria-live="polite"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm-password">Confirm password</label>
+                    <input type="password" id="confirm-password" name="confirm_password" placeholder="Confirm your password"
+                        required autocomplete="new-password">
+                    <span class="form-error" id="confirm-error" aria-live="polite"></span>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submit-btn">Sign up</button>
+            </form>
+
+            <div class="login-prompt">
+                <p>Already have an account?</p>
+                <a href="login.html">Log in</a>
+            </div>
+            </div>
+        </div>
+    </section>
+
+        <footer class="auth-footer">
+            <nav class="auth-footer-nav">
+                <a href="/">Home</a>
+                <span class="sep">·</span>
+                <a href="/about">About</a>
+                <span class="sep">·</span>
+                <a href="/login">Log in</a>
+                <span class="sep">·</span>
+                <a href="/onboard">Dashboard</a>
+            </nav>
+        </footer>
+    </main>
+
+    <script>
+        (function () {
+            var form = document.getElementById('signup-form');
+            var passwordInput = document.getElementById('password');
+            var confirmInput = document.getElementById('confirm-password');
+            var strengthEl = document.getElementById('password-strength');
+            var strengthText = document.getElementById('password-strength-text');
+            var criteriaIds = ['crit-length', 'crit-upper', 'crit-lower', 'crit-number', 'crit-special'];
+
+            function checkCriteria(password) {
+                return {
+                    length: password.length >= 8,
+                    upper: /[A-Z]/.test(password),
+                    lower: /[a-z]/.test(password),
+                    number: /\d/.test(password),
+                    special: /[^a-zA-Z0-9]/.test(password)
+                };
+            }
+
+            function getPasswordStrength(password) {
+                if (!password.length) return { level: 'none', label: 'Enter a password', criteria: null };
+                var c = checkCriteria(password);
+                var metCount = [c.length, c.upper, c.lower, c.number, c.special].filter(Boolean).length;
+                if (metCount === 5) return { level: 'strong', label: 'Strong', criteria: c };
+                if (metCount >= 3) return { level: 'fair', label: 'Fair', criteria: c };
+                return { level: 'weak', label: 'Weak', criteria: c };
+            }
+
+            function updateCriteriaDisplay(criteria) {
+                if (!criteria) {
+                    criteriaIds.forEach(function (id) {
+                        document.getElementById(id).classList.remove('met');
+                    });
+                    return;
+                }
+                var order = ['length', 'upper', 'lower', 'number', 'special'];
+                order.forEach(function (key, i) {
+                    var el = document.getElementById(criteriaIds[i]);
+                    if (el) el.classList.toggle('met', criteria[key]);
+                });
+            }
+
+            passwordInput.addEventListener('input', function () {
+                var s = getPasswordStrength(this.value);
+                strengthEl.className = 'password-strength ' + (s.level === 'none' ? '' : s.level);
+                strengthText.textContent = s.label;
+                updateCriteriaDisplay(s.criteria);
+            });
+
+            function showError(id, msg) {
+                var el = document.getElementById(id);
+                var input = id.replace('-error', '');
+                var field = document.getElementById(input);
+                if (field) field.classList.toggle('error', !!msg);
+                el.textContent = msg || '';
+            }
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                showError('username-error', '');
+                showError('email-error', '');
+                showError('password-error', '');
+                showError('confirm-error', '');
+
+                var username = document.getElementById('username').value.trim();
+                var email = document.getElementById('email').value.trim();
+                var password = passwordInput.value;
+                var confirm = confirmInput.value;
+                var valid = true;
+
+                if (!username) {
+                    showError('username-error', 'Please enter a username.');
+                    valid = false;
+                }
+                if (!email) {
+                    showError('email-error', 'Please enter your email.');
+                    valid = false;
+                }
+                var criteria = checkCriteria(password);
+                var allMet = criteria.length && criteria.upper && criteria.lower && criteria.number && criteria.special;
+                if (!allMet) {
+                    showError('password-error', 'Password must meet all criteria above (8+ chars, upper, lower, number, special character).');
+                    valid = false;
+                }
+                if (password !== confirm) {
+                    showError('confirm-error', 'Passwords do not match.');
+                    valid = false;
+                }
+
+                if (valid) {
+                    // Form is valid – in a real app you would submit to your backend here
+                    form.submit();
+                }
+            });
+        })();
+    </script>
+</body>
+
+</html>

@@ -150,6 +150,12 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .logo:hover {
+            color: var(--accent-cyan);
         }
 
         .logo span {
@@ -398,6 +404,29 @@
             color: var(--text-secondary);
         }
 
+        .footer-nav {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 0.35rem 0.75rem;
+        }
+
+        .footer-nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-nav a:hover {
+            color: var(--accent-cyan);
+        }
+
+        .footer-sep {
+            opacity: 0.5;
+            user-select: none;
+        }
+
         .cloud-icons {
             display: flex;
             gap: 15px;
@@ -432,14 +461,18 @@
     <header>
         <div class="container">
             <nav>
-                <div class="logo">
+                <a href="/" class="logo">
                     <span>◆</span> AI SOC Analyst
-                </div>
+                </a>
                 <div class="nav-links">
-                    <a href="#" class="active">Dashboard</a>
+                    <a href="/">Home</a>
+                    <a href="/about">About</a>
+                    <a href="/login">Log in</a>
+                    <a href="/signup">Sign up</a>
+                    <a href="/onboard" class="active">Dashboard</a>
                     <a href="#">Alerts</a>
                     <a href="#">Settings</a>
-                    <a href="#" style="color: #ff6b6b;">Logout</a>
+                    <a href="/login" style="color: #ff6b6b;">Logout</a>
                 </div>
             </nav>
         </div>
@@ -544,7 +577,16 @@
 
     <footer>
         <div class="container">
-            &copy; 2026 AI SOC Analyst | Enterprise Edition v1.0
+            <nav class="footer-nav">
+                <a href="/">Home</a>
+                <span class="footer-sep">·</span>
+                <a href="/about">About</a>
+                <span class="footer-sep">·</span>
+                <a href="/login">Log in</a>
+                <span class="footer-sep">·</span>
+                <a href="/signup">Sign up</a>
+            </nav>
+            <p style="margin-top: 0.75rem;">&copy; 2026 AI SOC Analyst | Enterprise Edition v1.0</p>
         </div>
     </footer>
 

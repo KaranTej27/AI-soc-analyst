@@ -64,7 +64,6 @@
             margin-bottom: 2rem;
             background: var(--gradient-main);
             -webkit-background-clip: text;
-            background-clip: text;
             -webkit-text-fill-color: transparent;
             display: inline-block;
         }
@@ -174,7 +173,7 @@
             text-align: center;
             height: 90vh;
             min-height: 600px;
-            padding-top: 0;
+            padding-top: 80px; /* space for fixed navbar */
             background: radial-gradient(circle at top, #112240 0%, var(--bg-color) 70%);
         }
 
@@ -414,7 +413,7 @@
             border-radius: 50%;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: center;    
             margin-right: 2rem;
             flex-shrink: 0;
             z-index: 2;
@@ -479,10 +478,226 @@
             margin-bottom: 1rem;
             display: block;
         }
+
+        .footer-nav {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .footer-nav a:hover {
+            color: var(--accent-cyan);
+        }
+
+        /* --- Navbar --- */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 2rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(5, 10, 20, 0.95);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .navbar-brand {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--text-primary);
+            text-decoration: none;
+            letter-spacing: -0.02em;
+        }
+
+        .navbar-brand span {
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .navbar-nav {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .navbar-nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: color 0.2s ease, background 0.2s ease;
+        }
+
+        .navbar-nav a:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .navbar-nav a.active {
+            color: var(--accent-cyan) !important;
+            background: rgba(100, 255, 218, 0.08);
+        }
+
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .navbar-actions .btn-nav {
+            padding: 0.5rem 1.25rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: all 0.25s ease;
+            border: none;
+            cursor: pointer;
+            font-family: var(--font-main);
+        }
+
+        .navbar-actions .btn-login {
+            color: var(--text-primary);
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .navbar-actions .btn-login:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            background: rgba(100, 255, 218, 0.08);
+        }
+
+        .navbar-actions .btn-signup {
+            color: var(--bg-color);
+            background: var(--gradient-main);
+            border: 1px solid transparent;
+        }
+
+        .navbar-actions .btn-signup:hover {
+            box-shadow: 0 0 20px rgba(100, 255, 218, 0.4), 0 0 40px rgba(189, 0, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0.75rem 1rem;
+                flex-wrap: wrap;
+            }
+            .navbar-nav {
+                display: none;
+            }
+            .navbar-actions {
+                margin-left: auto;
+            }
+        }
     </style>
 </head>
 
 <body>
+
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <a href="/" class="navbar-brand">AI SOC <span>Analyst</span></a>
+        <div class="navbar-nav">
+            <a href="/">Home</a>
+            <a href="#hero" data-section="hero">About</a>
+            <a href="#problem" data-section="problem">How it Works</a>
+            <a href="#solution" data-section="solution">Solution</a>
+        </div>
+        <div class="navbar-actions">
+            <a href="login.html" class="btn-nav btn-login">Log in</a>
+            <a href="signup.html" class="btn-nav btn-signup">Sign up</a>
+        </div>
+    </nav>
+
+    <script>
+        (function() {
+            var nav = document.getElementById('navbar');
+            window.addEventListener('scroll', function() {
+                nav.classList.toggle('scrolled', window.scrollY > 20);
+            });
+
+            // Scroll spy: run after DOM is ready so sections exist
+            function initScrollSpy() {
+                var sectionIds = ['hero', 'problem', 'solution'];
+                var sections = sectionIds.map(function(id) { return document.getElementById(id); }).filter(Boolean);
+                var navLinks = document.querySelectorAll('.navbar-nav a[data-section]');
+                if (!navLinks.length || !sections.length) return;
+
+                function setActiveFromHash() {
+                    var hash = (location.hash || '').slice(1) || 'hero';
+                    navLinks.forEach(function(link) {
+                        link.classList.toggle('active', link.getAttribute('data-section') === hash);
+                    });
+                }
+
+                function setActiveFromScroll() {
+                    var scrollY = window.scrollY;
+                    var innerHeight = window.innerHeight * 0.4;
+                    var activeId = 'hero';
+                    for (var i = sections.length - 1; i >= 0; i--) {
+                        if (sections[i].offsetTop <= scrollY + innerHeight) {
+                            activeId = sections[i].id;
+                            break;
+                        }
+                    }
+                    navLinks.forEach(function(link) {
+                        link.classList.toggle('active', link.getAttribute('data-section') === activeId);
+                    });
+                }
+
+                navLinks.forEach(function(link) {
+                    link.addEventListener('click', function(e) {
+                        var id = link.getAttribute('data-section');
+                        if (id) setTimeout(setActiveFromHash, 100);
+                        // About link: always scroll to top (same page), never navigate away
+                        if (id === 'hero') {
+                            e.preventDefault();
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                            setActiveFromHash();
+                            history.replaceState(null, '', location.pathname + location.search);
+                        }
+                    });
+                });
+
+                window.addEventListener('scroll', setActiveFromScroll);
+                window.addEventListener('hashchange', setActiveFromHash);
+                if (location.hash) setActiveFromHash();
+                else setActiveFromScroll();
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initScrollSpy);
+            } else {
+                initScrollSpy();
+            }
+        })();
+    </script>
 
     <!-- Hero Section -->
     <section id="hero">
@@ -779,6 +994,13 @@
 
     <footer>
         <span class="footer-logo">AI SOC Analyst</span>
+        <nav class="footer-nav">
+            <a href="/">Home</a>
+            <a href="about.html">About</a>
+            <a href="login.html">Log in</a>
+            <a href="signup.html">Sign up</a>
+            <a href="onboard.html">Dashboard</a>
+        </nav>
         <p class="mono">&copy; 2025 Intelligent Behavioral Defense System.</p>
     </footer>
 
