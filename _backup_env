@@ -1,0 +1,3 @@
+# PostgreSQL connection URL
+# Replace 'YOUR_PASSWORD' with the password you defined during PostgreSQL installation.
+DATABASE_URL=postgresql://postgres:Z2A0I0N6@localhost:5432/AI%20soc%20analyst%20credentials
